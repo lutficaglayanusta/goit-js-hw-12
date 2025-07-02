@@ -1,9 +1,7 @@
 import SimpleLightbox from 'simplelightbox';
 // Stil importu
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import iziToast from 'izitoast';
-// Stil importu
-import 'izitoast/dist/css/iziToast.min.css';
+
 
 const gallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
@@ -15,20 +13,9 @@ const lightbox = new SimpleLightbox('.gallery a', {
 });
 
 export const renderImages = images => {
-  loader.style.display = 'none';
-
-  if (images.hits.length === 0) {
-    iziToast.warning({
-      title: 'Warning',
-      message:
-        'Sorry, there are no images matching your search query. Please try again!',
-      position: 'topRight',
-    });
-    button.style.display = 'none';
-  } else {
-    const markup = images.hits
-      .map(
-        image => `<li class="gallery-item">
+  const markup = images.hits
+    .map(
+      image => `<li class="gallery-item">
                   <a href="${image.largeImageURL}">
                     <img src="${image.webformatURL}" width='360' height='200' alt="${image.tags}">
                   </a>
@@ -42,16 +29,24 @@ export const renderImages = images => {
                   
                   
               </li>`
-      )
-      .join('');
-    gallery.insertAdjacentHTML('beforeend', markup);
-    lightbox.refresh();
-    button.style.display = 'block';
+    )
+    .join('');
+  gallery.insertAdjacentHTML('beforeend', markup);
+  lightbox.refresh();
+};
 
-    const galleryItem = document.querySelector('.gallery-item');
-
-    const rect = galleryItem.getBoundingClientRect();
-
-    window.scrollBy({ top: rect.height * 2, behavior: 'smooth' });
-  }
+export const clearGallery = () => {
+  gallery.innerHTML = '';
+}
+export const showLoader = () => {
+  loader.style.display = 'block';
+};
+export const hideLoader = () => {
+  loader.style.display = 'none';
+};
+export const showButton = () => {
+  button.style.display = 'block';
+}
+export const hideButton = () => {
+  button.style.display = 'none';
 };

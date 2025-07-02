@@ -3,7 +3,14 @@ import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 // Dokümantasyonda belirtilen import
 
-import { renderImages } from './js/render-functions.js';
+import {
+  renderImages,
+  hideButton,
+  hideLoader,
+  showButton,
+  showLoader,
+  clearGallery,
+} from './js/render-functions.js';
 import { fetchImages } from './js/pixabay-api.js';
 
 const form = document.querySelector('.form');
@@ -13,30 +20,58 @@ const loader1 = document.querySelector('.loader1');
 const loader = document.querySelector('.loader');
 const gallery = document.querySelector('.gallery');
 
-let page = 1;
-let input;
+let page;
+let searchQuery;
 const per_page = 40;
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  gallery.innerHTML = '';
   page = 1;
+  clearGallery();
 
-  input = e.target.elements.search.value.trim();
+  searchQuery = e.target.elements.search.value.trim();
 
-  if (input === '') {
+  if (searchQuery === '') {
     iziToast.error({
       title: 'Error',
       message: 'Please enter a search term',
       position: 'topRight',
     });
-    button.style.display = 'none';
-  } else {
-    loader.style.display = 'block';
-
-    const images = await fetchImages(input, page,per_page);
-
+    hideButton();
+    return;
+  }
+  hideButton();
+  showLoader();
+  try {
+    const images = await fetchImages(searchQuery, page, per_page);
+    if (images.hits.length === 0) {
+      iziToast.warning({
+        title: 'Warning',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+      });
+      
+      return;
+    }
     renderImages(images);
+    const rect = document
+      .querySelector('.gallery-item')
+      .getBoundingClientRect();
+
+    window.scrollBy({
+      top: rect.height * 2,
+      behavior: 'smooth',
+    });
+    showButton();
+  } catch (error) {
+    iziToast.error({
+      title: 'Error',
+      message: error.message,
+      position: 'topRight',
+    });
+  } finally {
+    hideLoader();
   }
 
   form.reset();
@@ -45,24 +80,40 @@ form.addEventListener('submit', async e => {
 button.addEventListener('click', async () => {
   page += 1;
 
-  loader1.style.display = 'block';
+  showLoader();
 
-  const images = await fetchImages(input, page,per_page);
+  try {
+    const images = await fetchImages(searchQuery, page, per_page);
 
+    renderImages(images);
 
-  loader1.style.display = 'none';
+    const rect = document
+      .querySelector('.gallery-item')
+      .getBoundingClientRect();
 
-  renderImages(images);
- 
+    window.scrollBy({
+      top: rect.height * 2,
+      behavior: 'smooth',
+    });
 
-  const totalPages = Math.ceil(images.totalHits / per_page);
+    const totalPages = Math.ceil(images.totalHits / per_page);
 
-  if (page >= totalPages) {
-    iziToast.warning({
-      title: 'Warning',
-      message: "We're sorry, but you've reached the end of search results",
+    if (page >= totalPages) {
+      iziToast.warning({
+        title: 'Warning',
+        message: "We're sorry, but you've reached the end of search results",
+        position: 'topRight',
+      });
+      hideButton();
+      return;
+    }
+  } catch (error) {
+    iziToast.error({
+      title: 'Error',
+      message: error.message,
       position: 'topRight',
     });
-    button.style.display = 'none';
+  } finally {
+    hideLoader();
   }
 });

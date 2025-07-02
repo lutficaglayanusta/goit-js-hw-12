@@ -10,7 +10,6 @@ const api_key = '51088577-7b521529318281431558696f8';
 
 export const fetchImages = async (input, page,per_page) => {
   try {
-    console.log(page);
     const response = await axios.get('https://pixabay.com/api/', {
       params: {
         key: api_key,
