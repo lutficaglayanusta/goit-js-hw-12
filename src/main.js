@@ -16,7 +16,6 @@ import { fetchImages } from './js/pixabay-api.js';
 const form = document.querySelector('.form');
 
 const button = document.querySelector('.load-more');
-const loader1 = document.querySelector('.loader1');
 const loader = document.querySelector('.loader');
 const gallery = document.querySelector('.gallery');
 
@@ -42,6 +41,7 @@ form.addEventListener('submit', async e => {
   }
   hideButton();
   showLoader();
+
   try {
     const images = await fetchImages(searchQuery, page, per_page);
     if (images.hits.length === 0) {
@@ -51,19 +51,26 @@ form.addEventListener('submit', async e => {
           'Sorry, there are no images matching your search query. Please try again!',
         position: 'topRight',
       });
-      
+      hideButton();
       return;
     }
-    renderImages(images);
-    const rect = document
-      .querySelector('.gallery-item')
-      .getBoundingClientRect();
+    renderImages(images.hits);
 
-    window.scrollBy({
-      top: rect.height * 2,
-      behavior: 'smooth',
-    });
-    showButton();
+    if (images.totalHits > images.hits.length) {
+      showButton();
+    }
+    const totalPages = Math.ceil(images.totalHits / per_page);
+
+    if (page >= totalPages) {
+      iziToast.warning({
+        title: 'Warning',
+        message: "We're sorry, but you've reached the end of search results",
+        position: 'topRight',
+      });
+      hideButton();
+      return;
+    }
+
   } catch (error) {
     iziToast.error({
       title: 'Error',
@@ -85,7 +92,7 @@ button.addEventListener('click', async () => {
   try {
     const images = await fetchImages(searchQuery, page, per_page);
 
-    renderImages(images);
+    renderImages(images.hits);
 
     const rect = document
       .querySelector('.gallery-item')

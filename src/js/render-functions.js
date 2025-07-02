@@ -13,7 +13,7 @@ const lightbox = new SimpleLightbox('.gallery a', {
 });
 
 export const renderImages = images => {
-  const markup = images.hits
+  const markup = images
     .map(
       image => `<li class="gallery-item">
                   <a href="${image.largeImageURL}">
