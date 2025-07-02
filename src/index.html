@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./css/style.css" />
   </head>
   <body>
-    <form id="form">
+    <form class="form">
       <input
         class="search"
         name="search"
@@ -25,10 +25,25 @@
         margin-top: 30px;
       "
     >
-      <div class="loader"></div>
+      <span class="loader"></span>
     </div>
 
     <ul class="gallery"></ul>
+
+    <div style="display: flex;justify-content: center;align-items: center;">
+      <button class="load-more">Load more</button>
+    </div>
+    
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 30px;
+      "
+    >
+      <span class="loader1"></span>
+    </div>
 
     <script type="module" src="./main.js"></script>
   </body>

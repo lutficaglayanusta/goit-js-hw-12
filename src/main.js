@@ -1,86 +1,68 @@
-import axios from 'axios';
 import iziToast from 'izitoast';
 // Stil importu
 import 'izitoast/dist/css/iziToast.min.css';
 // Dokümantasyonda belirtilen import
-import SimpleLightbox from 'simplelightbox';
-// Stil importu
-import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const api_key = '51088577-7b521529318281431558696f8';
+import { renderImages } from './js/render-functions.js';
+import { fetchImages } from './js/pixabay-api.js';
 
-const form = document.getElementById('form');
-const gallery = document.querySelector('.gallery');
+const form = document.querySelector('.form');
+
+const button = document.querySelector('.load-more');
+const loader1 = document.querySelector('.loader1');
 const loader = document.querySelector('.loader');
+const gallery = document.querySelector('.gallery');
 
-const lightbox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
-  captionDelay: 250,
-});
+let page = 1;
+let input;
+const per_page = 40;
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
   gallery.innerHTML = '';
+  page = 1;
 
-  const input = e.target.elements.search.value;
+  input = e.target.elements.search.value.trim();
 
   if (input === '') {
     iziToast.error({
       title: 'Error',
-      message: 'Please enter a search query.',
+      message: 'Please enter a search term',
       position: 'topRight',
     });
-    return;
-    }
+    button.style.display = 'none';
+  } else {
     loader.style.display = 'block';
 
-  try {
-    const { data } = await axios.get('https://pixabay.com/api', {
-      params: {
-        key: api_key,
-        q: input,
-        image_type: 'photo',
-      },
-    });
-      loader.style.display = 'none';
-      
-    if (data.hits.length === 0) {
-      iziToast.info({
-        title: 'Warning',
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
-        position: 'topRight',
-      });
-      return;
-    }
-    const images = data.hits
-      .map(
-        hit => `<li class="gallery-item">
-                <a href="${hit.largeImageURL}">
-                  <img src="${hit.webformatURL}" width='360' height='200' alt="${hit.tags}">
-                </a>
-                
-                <ul>
-                    <li><b>Likes</b> ${hit.likes}</li>
-                    <li><b>Views</b> ${hit.views}</li>
-                    <li><b>Comments</b> ${hit.comments}</li>
-                    <li><b>Downloads</b> ${hit.downloads}</li>
-                </ul>
-                
-                
-            </li>`
-      )
-      .join('');
+    const images = await fetchImages(input, page,per_page);
 
-    gallery.insertAdjacentHTML('beforeend', images);
+    renderImages(images);
+  }
 
-    lightbox.refresh();
-  } catch (error) {
-    iziToast.error({
-      title: 'Error',
-      message: error.message,
+  form.reset();
+});
+
+button.addEventListener('click', async () => {
+  page += 1;
+
+  loader1.style.display = 'block';
+
+  const images = await fetchImages(input, page,per_page);
+
+
+  loader1.style.display = 'none';
+
+  renderImages(images);
+ 
+
+  const totalPages = Math.ceil(images.totalHits / per_page);
+
+  if (page >= totalPages) {
+    iziToast.warning({
+      title: 'Warning',
+      message: "We're sorry, but you've reached the end of search results",
       position: 'topRight',
     });
-    }
-    form.reset();
+    button.style.display = 'none';
+  }
 });
