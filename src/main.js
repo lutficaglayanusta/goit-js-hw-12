@@ -91,8 +91,22 @@ button.addEventListener('click', async () => {
 
   try {
     const images = await fetchImages(searchQuery, page, per_page);
-
+    if (images.hits.length === 0) {
+      iziToast.warning({
+        title: 'Warning',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+      });
+      hideButton();
+      return;
+    }
+    hideButton();
     renderImages(images.hits);
+
+    if (images.totalHits > images.hits.length) {
+      showButton();
+    }
 
     const rect = document
       .querySelector('.gallery-item')
