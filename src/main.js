@@ -19,9 +19,10 @@ const button = document.querySelector('.load-more');
 const loader = document.querySelector('.loader');
 const gallery = document.querySelector('.gallery');
 
-let page;
-let searchQuery;
+let page=1;
+let searchQuery = "";
 const per_page = 40;
+let totalHits = 0;
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
@@ -44,6 +45,9 @@ form.addEventListener('submit', async e => {
 
   try {
     const images = await fetchImages(searchQuery, page, per_page);
+
+    totalHits = images.totalHits;
+
     if (images.hits.length === 0) {
       iziToast.warning({
         title: 'Warning',
@@ -56,19 +60,8 @@ form.addEventListener('submit', async e => {
     }
     renderImages(images.hits);
 
-    if (images.totalHits > images.hits.length) {
+    if (totalHits > images.hits.length) {
       showButton();
-    }
-    const totalPages = Math.ceil(images.totalHits / per_page);
-
-    if (page >= totalPages) {
-      iziToast.warning({
-        title: 'Warning',
-        message: "We're sorry, but you've reached the end of search results",
-        position: 'topRight',
-      });
-      hideButton();
-      return;
     }
 
   } catch (error) {
@@ -79,13 +72,15 @@ form.addEventListener('submit', async e => {
     });
   } finally {
     hideLoader();
+    form.reset();
   }
 
-  form.reset();
+  
 });
 
 button.addEventListener('click', async () => {
   page += 1;
+  hideButton();
 
   showLoader();
 
@@ -101,12 +96,8 @@ button.addEventListener('click', async () => {
       hideButton();
       return;
     }
-    hideButton();
+    
     renderImages(images.hits);
-
-    if (images.totalHits > images.hits.length) {
-      showButton();
-    }
 
     const rect = document
       .querySelector('.gallery-item')
@@ -116,18 +107,18 @@ button.addEventListener('click', async () => {
       top: rect.height * 2,
       behavior: 'smooth',
     });
+    const totalLoaded = document.querySelectorAll('.gallery-item').length;
 
-    const totalPages = Math.ceil(images.totalHits / per_page);
-
-    if (page >= totalPages) {
-      iziToast.warning({
-        title: 'Warning',
-        message: "We're sorry, but you've reached the end of search results",
+    if (totalLoaded >= totalHits){
+      hideLoadMoreButton();
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
         position: 'topRight',
       });
-      hideButton();
-      return;
+    } else {
+      showButton();
     }
+   
   } catch (error) {
     iziToast.error({
       title: 'Error',
