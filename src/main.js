@@ -63,6 +63,13 @@ form.addEventListener('submit', async e => {
     if (totalHits > images.hits.length) {
       showButton();
     }
+    if(totalHits <= images.hits.length){
+      hideButton();
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
+    }
 
   } catch (error) {
     iziToast.error({
@@ -110,7 +117,7 @@ button.addEventListener('click', async () => {
     const totalLoaded = document.querySelectorAll('.gallery-item').length;
 
     if (totalLoaded >= totalHits){
-      hideLoadMoreButton();
+      hideButton();
       iziToast.info({
         message: "We're sorry, but you've reached the end of search results.",
         position: 'topRight',
